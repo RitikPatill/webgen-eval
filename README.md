@@ -4,13 +4,13 @@ A CLI tool that generates polished, self-contained HTML/CSS/JS webpages from pla
 
 ## Status
 
-**M1 — scaffold complete.** The repo structure, package, and CLI skeleton are in place. The `generate` command accepts all planned arguments but currently prints a stub message; generation and evaluation logic ships in M2+.
+**M2 — html generation core complete.** The `generate` command calls Claude (`claude-sonnet-4-6`) and writes a self-contained HTML file to `output/<slug>.html`.
 
 | Component | State |
 |-----------|-------|
 | Repo scaffold (`src`-layout, `pyproject.toml`) | done |
-| CLI entry point (`webgen-eval generate`) | stub |
-| Generator (Claude → HTML) | planned |
+| CLI entry point (`webgen-eval generate`) | done |
+| Generator (Claude → HTML) | done |
 | Judge (Claude → Pydantic scores) | planned |
 | Refinement loop | planned |
 | Rich score-table display | planned |
@@ -21,7 +21,7 @@ LLM-as-judge evaluation is one of the fastest-growing patterns in applied AI eng
 
 ## Architecture
 
-Target architecture (fully implemented in M2–M4):
+Target architecture (M2 implemented; M3–M5 planned):
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -71,11 +71,19 @@ Target architecture (fully implemented in M2–M4):
 
 ```
 webgen-eval/
+├── prompts/
+│   └── generator.txt        # system prompt for the HTML generator
 ├── src/
 │   └── webgen_eval/
 │       ├── __init__.py      # package version
-│       └── __main__.py      # CLI entry point (stub)
-├── requirements.txt         # pinned deps
+│       ├── __main__.py      # CLI entry point (Typer)
+│       └── generator.py     # Claude call + HTML extraction + file write
+├── output/                  # generated HTML files (gitignored except .gitkeep)
+├── tests/
+│   ├── __init__.py
+│   └── test_generator.py    # unit tests for slug() and extract_html()
+├── requirements.txt         # pinned runtime deps
+├── requirements-dev.txt     # pytest (dev only)
 ├── pyproject.toml           # build config + console-script entry point
 ├── LICENSE
 └── .gitignore
@@ -105,25 +113,31 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 ## Usage
 
 ```bash
-# Basic usage
-python -m webgen_eval generate "a personal portfolio page with a dark theme"
+# Generate a webpage (output auto-named from the description slug)
+python -m webgen_eval generate "dark-mode SaaS landing page"
+# → writes output/dark-mode-saas-landing-page.html
 
-# Specify output file and score threshold
+# Equivalent using the installed console script (after pip install -e .)
+webgen-eval generate "dark-mode SaaS landing page"
+
+# Specify a custom output path
 python -m webgen_eval generate "a product landing page for a coffee brand" \
-    --output landing.html \
-    --threshold 8.0
+    --output landing.html
 ```
-
-> **Note:** The `generate` command is currently a stub. Running it prints
-> `[stub] Would generate webpage for: ...` and exits. Full generation and
-> evaluation logic will be wired in M2.
 
 **Options:**
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--output`, `-o` | `output.html` | Path for the generated HTML file |
-| `--threshold`, `-t` | `7.5` | Minimum overall score to stop refinement |
+| `--output`, `-o` | *(auto-slug)* | Path for the generated HTML file |
+| `--threshold`, `-t` | `7.5` | Minimum overall score to stop refinement (used in M4+) |
+
+## Running Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
 
 ## Examples
 
@@ -134,7 +148,7 @@ Example prompts with generated HTML and JSON eval reports will be added in a fut
 | Milestone | Deliverable |
 |-----------|-------------|
 | M1 — scaffold | Repo structure, stub CLI, pinned deps (done) |
-| M2 — generator | Claude prompt → self-contained HTML output, saved to disk |
+| M2 — generator | Claude prompt → self-contained HTML output, saved to disk (done) |
 | M3 — judge | Pydantic score model, judge prompt, JSON eval report |
 | M4 — refinement loop | Critique feedback → re-generation, up to N iterations |
 | M5 — Rich display | Terminal table with per-dimension scores and iteration deltas |
