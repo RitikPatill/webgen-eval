@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Altitud — Single-Origin Coffee</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:     #fdf6ec;
+      --warm:      #f5ede0;
+      --brown:     #5c3d2e;
+      --espresso:  #2c1a0e;
+      --gold:      #c8973e;
+      --gold-h:    #b5822f;
+      --text:      #2c1a0e;
+      --muted:     #8c7060;
+      --border:    #e8ddd0;
+      --white:     #ffffff;
+      --radius-sm: 8px;
+      --radius:    14px;
+      --shadow:    0 4px 24px rgba(44,26,14,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    /* ── UTILITIES ── */
+    .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(253, 246, 236, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--espresso);
+      text-decoration: none;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: -apple-system, sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--espresso); }
+
+    .nav-shop {
+      font-family: -apple-system, sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--espresso);
+      color: var(--cream);
+      padding: 0.55rem 1.4rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-shop:hover { background: var(--brown); }
+
+    /* ── HERO ── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      min-height: calc(100vh - 64px);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2.5rem;
+      gap: 4rem;
+    }
+
+    .hero-text .eyebrow {
+      font-family: -apple-system, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-text h1 {
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      color: var(--espresso);
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-text p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 430px;
+      margin-bottom: 2.25rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--white);
+      font-family: -apple-system, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 0.85rem 2rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-gold:hover {
+      background: var(--gold-h);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--espresso);
+      font-family: -apple-system, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.85rem 2rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--brown);
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-outline:hover { background: var(--warm); }
+
+    /* HERO VISUAL — coffee-ring SVG placeholder */
+    .hero-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .coffee-visual {
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #7b4f2e 0%, #3d1f0c 55%, #1a0a04 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 20px 60px rgba(44,26,14,0.3), inset 0 2px 8px rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .coffee-visual::after {
+      content: "";
+      position: absolute;
+      top: 12%;
+      left: 18%;
+      width: 30%;
+      height: 18%;
+      background: radial-gradient(ellipse, rgba(255,255,255,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .coffee-label {
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: 0.15em;
+      text-align: center;
+      text-transform: uppercase;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+
+    /* ── ORIGIN STRIP ── */
+    .origin-strip {
+      background: var(--espresso);
+      color: var(--cream);
+      padding: 1.25rem 2.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
+      flex-wrap: wrap;
+      font-family: -apple-system, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .origin-strip span { opacity: 0.65; }
+
+    /* ── PRODUCTS ── */
+    .products {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2.5rem;
+    }
+
+    .section-eyebrow {
+      font-family: -apple-system, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 0.6rem;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--espresso);
+      margin-bottom: 0.6rem;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 480px;
+      margin: 0 auto 3.5rem;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.75rem;
+    }
+
+    .product-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(44,26,14,0.15);
+    }
+
+    .product-img {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+    }
+
+    .roast-light  { background: linear-gradient(135deg, #f5deb3, #deb887); }
+    .roast-medium { background: linear-gradient(135deg, #c49a6c, #8b5e3c); }
+    .roast-dark   { background: linear-gradient(135deg, #5c3317, #2c1a0e); }
+
+    .product-body { padding: 1.25rem 1.5rem 1.5rem; }
+
+    .product-origin {
+      font-family: -apple-system, sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.35rem;
+    }
+
+    .product-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--espresso);
+      margin-bottom: 0.35rem;
+    }
+
+    .product-notes {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .product-price {
+      font-family: -apple-system, sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--espresso);
+    }
+
+    .add-btn {
+      font-family: -apple-system, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-sm);
+      background: var(--espresso);
+      color: var(--cream);
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .add-btn:hover { background: var(--brown); }
+
+    /* ── STORY ── */
+    .story {
+      background: var(--warm);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 5rem 2.5rem;
+    }
+
+    .story-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .story-inner blockquote {
+      font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+      color: var(--espresso);
+      line-height: 1.55;
+      font-style: italic;
+      margin-bottom: 1.5rem;
+    }
+
+    .story-inner cite {
+      font-family: -apple-system, sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      font-style: normal;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── SUBSCRIBE ── */
+    .subscribe {
+      max-width: 560px;
+      margin: 5rem auto;
+      padding: 0 2.5rem;
+      text-align: center;
+    }
+
+    .subscribe h2 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      color: var(--espresso);
+      margin-bottom: 0.6rem;
+    }
+
+    .subscribe p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .subscribe-form {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .subscribe-form input {
+      flex: 1;
+      min-width: 220px;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      background: var(--white);
+      color: var(--text);
+      font-family: -apple-system, sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .subscribe-form input:focus { border-color: var(--gold); }
+
+    .subscribe-form button {
+      padding: 0.75rem 1.5rem;
+      background: var(--gold);
+      color: var(--white);
+      font-family: -apple-system, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .subscribe-form button:hover { background: var(--gold-h); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--espresso);
+      color: rgba(253,246,236,0.65);
+      padding: 2rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-family: -apple-system, sans-serif;
+      font-size: 0.82rem;
+    }
+
+    .footer-logo {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--cream);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        min-height: auto;
+        padding: 3rem 1.5rem;
+        gap: 2.5rem;
+      }
+      .hero-text p { margin: 0 auto 2rem; }
+      .hero-actions { justify-content: center; }
+      .hero-visual { order: -1; }
+      .coffee-visual { max-width: 260px; }
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .origin-strip { gap: 2rem; }
+      .products, .story { padding: 3.5rem 1.5rem; }
+      .subscribe { padding: 0 1.5rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">Altitud</a>
+    <ul class="nav-links">
+      <li><a href="#products">Shop</a></li>
+      <li><a href="#story">Our Story</a></li>
+      <li><a href="#">Subscriptions</a></li>
+      <li><a href="#">Find Us</a></li>
+    </ul>
+    <a href="#products" class="nav-shop">Shop now</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Single-origin · Micro-roasted</p>
+      <h1>Coffee grown at<br>the edge of the sky</h1>
+      <p>We source exclusively from high-altitude farms above 1,800 m, roast in small batches, and ship within 48 hours of roasting.</p>
+      <div class="hero-actions">
+        <a href="#products" class="btn-gold">Explore the menu</a>
+        <a href="#story" class="btn-outline">Our story</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="coffee-visual">
+        <div class="coffee-label">Altitud<br>1800 m+</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORIGIN STRIP -->
+  <div class="origin-strip">
+    <span>Ethiopia · Yirgacheffe</span>
+    <span>Colombia · Huila</span>
+    <span>Guatemala · Huehuetenango</span>
+    <span>Kenya · Nyeri</span>
+  </div>
+
+  <!-- PRODUCTS -->
+  <section class="products" id="products">
+    <p class="section-eyebrow">Current harvest</p>
+    <h2 class="section-title">This season's selections</h2>
+    <p class="section-sub">All beans sourced directly from farmers. All roasts shipped fresh.</p>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="product-img roast-light">☕</div>
+        <div class="product-body">
+          <p class="product-origin">Ethiopia · Yirgacheffe</p>
+          <h3 class="product-name">Rift Valley Bloom</h3>
+          <p class="product-notes">Light roast. Jasmine, stone fruit, lemon zest. Filter or pour-over recommended.</p>
+          <div class="product-footer">
+            <span class="product-price">€14.50</span>
+            <button class="add-btn">Add to bag</button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img roast-medium">☕</div>
+        <div class="product-body">
+          <p class="product-origin">Colombia · Huila</p>
+          <h3 class="product-name">Andean Reserve</h3>
+          <p class="product-notes">Medium roast. Caramel, dark cherry, almond. Excellent as espresso or Aeropress.</p>
+          <div class="product-footer">
+            <span class="product-price">€13.00</span>
+            <button class="add-btn">Add to bag</button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img roast-dark">☕</div>
+        <div class="product-body">
+          <p class="product-origin">Guatemala · Huehuetenango</p>
+          <h3 class="product-name">Volcanic Dark</h3>
+          <p class="product-notes">Dark roast. Dark chocolate, brown sugar, smoky finish. Perfect for espresso.</p>
+          <div class="product-footer">
+            <span class="product-price">€12.50</span>
+            <button class="add-btn">Add to bag</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <section class="story" id="story">
+    <div class="story-inner">
+      <p class="section-eyebrow">Our philosophy</p>
+      <blockquote>
+        "Altitude forces the coffee cherry to ripen slowly, concentrating the sugars. We just try not to get in the way."
+      </blockquote>
+      <cite>— María Rodríguez, Head Roaster</cite>
+    </div>
+  </section>
+
+  <!-- SUBSCRIBE -->
+  <section class="subscribe">
+    <h2>Never run out</h2>
+    <p>Get a fresh bag delivered every two, four, or six weeks. Pause or cancel any time.</p>
+    <form class="subscribe-form" onsubmit="handleSubscribe(event)">
+      <input type="email" placeholder="your@email.com" required />
+      <button type="submit">Start my subscription</button>
+    </form>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-logo">Altitud</span>
+    <span>© 2025 Altitud Coffee Roasters · Privacy · Shipping · Returns</span>
+  </footer>
+
+  <script>
+    function handleSubscribe(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.textContent = 'Thanks! Check your inbox.';
+      btn.disabled = true;
+      btn.style.background = '#3fb950';
+    }
+  </script>
+
+</body>
+</html>
