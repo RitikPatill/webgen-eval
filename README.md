@@ -1,175 +1,138 @@
-# WebGen-Eval
+# WebGen-Eval: LLM Webpage Generator with Auto-Evaluation Loop
 
-A CLI tool that generates polished, self-contained HTML/CSS/JS webpages from plain-English descriptions, then scores and refines them using an LLM-as-judge evaluation loop.
+> Generate HTML/CSS pages from text prompts, then score and refine them with an LLM-as-judge evaluation loop.
 
-## Status
+<!-- TODO: replace with a 5-10 second demo gif. Record with ScreenToGif on
+     Windows or peek on macOS. Save to docs/demo.gif and update path here. -->
+![demo](docs/demo.gif)
 
-**M4 — refinement loop + rich terminal output complete.** `refine.py` runs up to three generation passes, feeding judge critique back into the generator. A Rich table displays per-dimension scores and deltas across iterations. All iteration HTML and JSON eval reports are saved to `output/`.
+## What it is
 
-| Component | State |
-|-----------|-------|
-| Repo scaffold (`src`-layout, `pyproject.toml`) | done |
-| CLI entry point (`webgen-eval generate`) | done |
-| Generator (Claude → HTML) | done |
-| Judge (Claude → Pydantic scores) | done |
-| Refinement loop | done |
-| Rich score-table display | done |
+WebGen-Eval takes a plain-English description and produces a polished, self-contained HTML/CSS/JS file — no external CDN, no build step, no framework. A second Claude instance (the "judge") then scores the output across four dimensions: visual clarity, responsiveness, functional completeness, and code quality. If the overall score falls below a configurable threshold, the critique is fed back to the generator for a revised pass. The loop runs up to two extra rounds and stops as soon as the threshold is cleared.
 
-## Problem Statement
+The terminal shows a Rich table with per-dimension scores and deltas across every iteration, colour-coded green for improvements and red for regressions.
 
-LLM-as-judge evaluation is one of the fastest-growing patterns in applied AI engineering. Most public demos either show raw generation with no eval, or academic benchmarks with no generation artifact. WebGen-Eval combines both in a single runnable CLI: it generates a webpage, scores it across four dimensions, feeds the critique back into a refinement pass, and displays score deltas in a Rich terminal table.
-
-## Architecture
-
-Full architecture (M4 implemented):
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  CLI  (typer)                                           │
-│   └─ generate "your description"                        │
-└─────────────────┬───────────────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────────────┐
-│  Generator (Claude)                                     │
-│   Prompt: semantic HTML5 + inline CSS, no CDN           │
-│   Output: self-contained .html file                     │
-└─────────────────┬───────────────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────────────┐
-│  Judge (Claude)                                         │
-│   Input: generated HTML                                 │
-│   Output (Pydantic): {                                  │
-│     overall: float,                                     │
-│     dimensions: {                                       │
-│       visual_clarity, responsiveness,                   │
-│       functional_completeness, code_quality             │
-│     },                                                  │
-│     critique: str                                       │
-│   }                                                     │
-└─────────────────┬───────────────────────────────────────┘
-                  │
-          score < threshold?
-                  │ yes
-                  ▼
-┌─────────────────────────────────────────────────────────┐
-│  Refinement Loop (up to 2 iterations)                   │
-│   Feeds critique back to Generator as extra context     │
-│   Re-runs Judge on revised HTML                         │
-└─────────────────┬───────────────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────────────┐
-│  Rich Display                                           │
-│   Terminal table: per-dimension scores + deltas         │
-│   across all iterations                                 │
-└─────────────────────────────────────────────────────────┘
-```
-
-## Project Structure
-
-```
-webgen-eval/
-├── prompts/
-│   ├── generator.txt        # system prompt for the HTML generator
-│   └── judge.txt            # system prompt for the LLM-as-judge evaluator
-├── src/
-│   └── webgen_eval/
-│       ├── __init__.py      # package version
-│       ├── __main__.py      # CLI entry point (Typer)
-│       ├── generator.py     # Claude call + HTML extraction + file write
-│       ├── evaluator.py     # judge Claude call + Pydantic EvalResult model
-│       └── refine.py        # refinement loop + Rich score-table renderer
-├── output/                  # generated HTML files (gitignored except .gitkeep)
-├── tests/
-│   ├── __init__.py
-│   ├── test_generator.py    # unit tests for slug() and extract_html()
-│   ├── test_evaluator.py    # unit tests for parse_eval_response() and evaluate()
-│   └── test_refine.py       # unit tests for run_refinement_loop() and render_score_table()
-├── requirements.txt         # pinned runtime deps
-├── requirements-dev.txt     # pytest (dev only)
-├── pyproject.toml           # build config + console-script entry point
-├── LICENSE
-└── .gitignore
-```
-
-## Installation
+## Quickstart
 
 ```bash
-# 1. Clone and enter the repo
-git clone <repo-url>
+git clone https://github.com/RitikPatill/webgen-eval.git
 cd webgen-eval
 
-# 2. Create a virtual environment (Python 3.11+)
+# Python 3.11+ required
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 
-# 3. Install dependencies
 pip install -r requirements.txt
-
-# 4. Install the package in editable mode
 pip install -e .
 
-# 5. Set your Anthropic API key
 export ANTHROPIC_API_KEY="sk-ant-..."
+
+webgen-eval generate "dark-mode SaaS landing page"
 ```
 
 ## Usage
 
+Generate a webpage and let the refinement loop run to completion:
+
 ```bash
-# Generate a webpage with automatic refinement (output auto-named from the description slug)
-python -m webgen_eval generate "dark-mode SaaS landing page"
-# → writes output/dark-mode-saas-landing-page_v1.html (and _v2, _v3 if refined)
-# → prints a Rich table with per-dimension scores and deltas across iterations
-
-# Equivalent using the installed console script (after pip install -e .)
-webgen-eval generate "dark-mode SaaS landing page"
-
-# Specify a custom output directory
-python -m webgen_eval generate "a product landing page for a coffee brand" \
-    --output my_output_dir
-
-# Adjust the score threshold (default 7.5 out of 10)
-python -m webgen_eval generate "a to-do list app" --threshold 8.0
+webgen-eval generate "interactive to-do list app"
+# writes output/interactive-to-do-list-app_v1.html (and _v2, _v3 if refined)
+# prints a Rich score table when done
 ```
 
-**Options:**
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--output`, `-o` | `output/` | Output directory for generated HTML and eval JSON files |
-| `--threshold`, `-t` | `7.5` | Minimum overall score (0–10) to stop the refinement loop |
-
-## Running Tests
+Override the output directory or the score threshold:
 
 ```bash
-pip install -r requirements-dev.txt
-pytest
+webgen-eval generate "product landing page for a specialty coffee brand" \
+    --output site/ \
+    --threshold 8.5
+```
+
+**Options**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--output`, `-o` | `output/` | Directory for generated HTML and eval JSON files |
+| `--threshold`, `-t` | `7.5` | Overall score (0–10) at which the loop stops early |
+
+Running the first example above produces output like this in the terminal:
+
+```
+                   WebGen-Eval — score table
+┌───────────────────────────┬──────┬──────────────┐
+│ Dimension                 │   v1 │      v2 (Δ)  │
+├───────────────────────────┼──────┼──────────────┤
+│ Visual Clarity            │  7.0 │  8.5 (+1.5)  │
+│ Responsiveness            │  6.5 │  7.5 (+1.0)  │
+│ Functional Completeness   │  7.5 │  8.0 (+0.5)  │
+│ Code Quality              │  8.0 │  8.0 ( 0.0)  │
+├───────────────────────────┼──────┼──────────────┤
+│ Overall                   │  7.3 │  8.0 (+0.7)  │
+└───────────────────────────┴──────┴──────────────┘
+Final HTML saved → output/dark-mode-saas-landing-page_v2.html
+```
+
+## Architecture
+
+```
+prompt
+  │
+  ▼
+Generator (Claude) ──► self-contained HTML file
+  │
+  ▼
+Judge (Claude) ──► EvalResult {overall, dimensions{4}, critique}
+  │
+  ├─ score ≥ threshold ──► Rich table + done
+  │
+  └─ score < threshold  (up to 2 extra passes)
+       │
+       └─ critique ──► Generator (with critique as context) ──► repeat
+```
+
+## Project structure
+
+```
+webgen-eval/
+├── prompts/            # system prompts for generator and judge
+├── src/webgen_eval/    # package source
+│   ├── __main__.py     # Typer CLI entry point
+│   ├── generator.py    # Claude call, HTML extraction, file write
+│   ├── evaluator.py    # judge call, Pydantic EvalResult model
+│   └── refine.py       # refinement loop and Rich score-table renderer
+├── examples/           # three worked runs (prompt, final HTML, eval JSON)
+├── tests/              # pytest unit tests for all three modules
+├── output/             # generated files at runtime (gitignored)
+├── requirements.txt    # pinned runtime deps
+├── requirements-dev.txt
+└── pyproject.toml
 ```
 
 ## Examples
 
-Example prompts with generated HTML and JSON eval reports will be added in a future milestone under `examples/`.
+Three worked runs are committed under `examples/`. Each directory contains `prompt.txt`, `output.html` (final iteration), and `eval_final.json`.
+
+| # | Prompt | Iterations | Final score |
+|---|--------|------------|-------------|
+| 01 | dark-mode SaaS landing page | 2 | 8.0 / 10 |
+| 02 | interactive to-do list app | 2 | 8.4 / 10 |
+| 03 | product landing page for a specialty coffee brand | 1 | 8.6 / 10 |
 
 ## Roadmap
 
-| Milestone | Deliverable |
-|-----------|-------------|
-| M1 — scaffold | Repo structure, stub CLI, pinned deps (done) |
-| M2 — generator | Claude prompt → self-contained HTML output, saved to disk (done) |
-| M3 — judge | Pydantic score model, judge prompt, JSON eval report (done) |
-| M4 — refinement loop + Rich display | Critique feedback → re-generation up to 2 extra passes; Rich terminal table with per-dimension scores and deltas (done) |
-| M5 — examples | Sample prompts, generated HTML files, and eval reports under `examples/` |
-
-<!-- TODO: update this table as milestones ship -->
-
-## Contributing
-
-1. Fork the repo and create a feature branch.
-2. Follow the existing code style (no external formatters required for now).
-3. Open a PR with a clear description of what changed and why.
+- [ ] Headless browser screenshot capture so the judge can score rendered output, not just source
+- [ ] Configurable model ID via CLI flag (`--model claude-opus-4-6`)
+- [ ] Batch mode: read a file of prompts and produce a summary report
+- [ ] W3C validation pass surfaced as a fifth eval dimension
+- [ ] Streaming output during generation so long passes show progress
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
+
+---
+
+Built autonomously by [autodev](https://github.com/RitikPatill/autodev),
+a multi-agent orchestrator I designed. Each commit in this repo was
+authored by me; the implementation work was performed by Sonnet under
+the orchestrator's control. Read the orchestrator's README to see how.

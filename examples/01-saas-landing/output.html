@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowSync — Automate Your Workflow</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary:   #0d1117;
+      --bg-card:      #161b22;
+      --bg-hover:     #1c2128;
+      --border:       #30363d;
+      --text-primary: #e6edf3;
+      --text-muted:   #8b949e;
+      --accent:       #58a6ff;
+      --accent-dim:   #1f6feb;
+      --green:        #3fb950;
+      --purple:       #bc8cff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text-primary); }
+
+    .nav-cta {
+      background: var(--accent-dim);
+      color: var(--text-primary);
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover { background: var(--accent); }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 6rem 2rem 4rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 6vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 .highlight {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d1117;
+      font-weight: 700;
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(88, 166, 255, 0.35);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      font-weight: 600;
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      background: var(--bg-hover);
+    }
+
+    /* ── SOCIAL PROOF ── */
+    .social-proof {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+      opacity: 0.45;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+
+    .section-label {
+      text-align: center;
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 540px;
+      margin: 0 auto 3.5rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent-dim);
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .icon-blue  { background: rgba(88, 166, 255, 0.12); }
+    .icon-green { background: rgba(63, 185, 80,  0.12); }
+    .icon-purple{ background: rgba(188, 140, 255, 0.12); }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    /* ── PRICING ── */
+    .pricing {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+    }
+
+    .pricing-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      position: relative;
+    }
+
+    .popular-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #0d1117;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+    }
+
+    .plan-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .plan-price {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 0.25rem;
+    }
+
+    .plan-price span {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .plan-desc {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .plan-features {
+      list-style: none;
+      margin-bottom: 2rem;
+    }
+
+    .plan-features li {
+      font-size: 0.9rem;
+      padding: 0.4rem 0;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .plan-features li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .plan-btn {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-primary);
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .plan-btn:hover { background: var(--bg-hover); }
+
+    .pricing-card.featured .plan-btn {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d1117;
+    }
+
+    .pricing-card.featured .plan-btn:hover { background: #79b8ff; }
+
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      max-width: 700px;
+      margin: 4rem auto;
+      padding: 3rem 2rem;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .cta-banner h2 {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.5px;
+    }
+
+    .cta-banner p {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 1rem; }
+      .nav-links { display: none; }
+      .hero { padding: 4rem 1.25rem 3rem; }
+      .features, .pricing { padding: 3.5rem 1.25rem; }
+      .cta-banner { margin: 2rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">Flow<span>Sync</span></a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#">Docs</a></li>
+      <li><a href="#">Blog</a></li>
+    </ul>
+    <a href="#" class="nav-cta">Start free →</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge">Now in public beta</div>
+    <h1>Automate your workflow,<br><span class="highlight">ship faster than ever</span></h1>
+    <p class="hero-sub">FlowSync connects your tools, automates repetitive tasks, and gives your team real-time visibility — all without writing a single line of code.</p>
+    <div class="hero-actions">
+      <a href="#" class="btn-primary">Get started free</a>
+      <a href="#" class="btn-secondary">View demo ▶</a>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <div class="social-proof">
+    <p>Trusted by engineering teams at</p>
+    <div class="logos">
+      <span>Vercel</span>
+      <span>Linear</span>
+      <span>Stripe</span>
+      <span>Notion</span>
+      <span>Figma</span>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <p class="section-label">Why FlowSync</p>
+    <h2 class="section-title">Everything your team needs</h2>
+    <p class="section-sub">Built for modern engineering teams who want automation without the overhead.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon icon-blue">⚡</div>
+        <h3>Visual Workflow Builder</h3>
+        <p>Drag-and-drop interface lets anyone on your team design complex automations in minutes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-green">🔗</div>
+        <h3>200+ Integrations</h3>
+        <p>Native connectors for GitHub, Slack, Jira, Linear, Salesforce, and every tool your team already uses.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-purple">📊</div>
+        <h3>Real-time Analytics</h3>
+        <p>Live dashboards show workflow health, task throughput, and bottlenecks across every pipeline.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-blue">🔒</div>
+        <h3>Enterprise Security</h3>
+        <p>SOC 2 Type II certified. SSO, audit logs, and granular RBAC out of the box.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-green">🚀</div>
+        <h3>Instant Deployments</h3>
+        <p>One-click deploy to any cloud. Auto-scaling keeps your workflows fast under any load.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-purple">🤝</div>
+        <h3>Team Collaboration</h3>
+        <p>Shared workspaces, version history, and inline comments so your team stays in sync.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-title">Simple, transparent pricing</h2>
+    <p class="section-sub">Start free, scale as you grow. No hidden fees.</p>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <p class="plan-name">Starter</p>
+        <p class="plan-price">$0<span> / mo</span></p>
+        <p class="plan-desc">Perfect for individuals and small projects.</p>
+        <ul class="plan-features">
+          <li>5 active workflows</li>
+          <li>1,000 tasks/month</li>
+          <li>10 integrations</li>
+          <li>Community support</li>
+        </ul>
+        <button class="plan-btn">Get started</button>
+      </div>
+      <div class="pricing-card featured">
+        <div class="popular-badge">Most popular</div>
+        <p class="plan-name">Pro</p>
+        <p class="plan-price">$29<span> / mo</span></p>
+        <p class="plan-desc">For growing teams that move fast.</p>
+        <ul class="plan-features">
+          <li>Unlimited workflows</li>
+          <li>50,000 tasks/month</li>
+          <li>All integrations</li>
+          <li>Priority support</li>
+          <li>Advanced analytics</li>
+        </ul>
+        <button class="plan-btn">Start Pro trial</button>
+      </div>
+      <div class="pricing-card">
+        <p class="plan-name">Enterprise</p>
+        <p class="plan-price">Custom</p>
+        <p class="plan-desc">For large teams with complex needs.</p>
+        <ul class="plan-features">
+          <li>Unlimited everything</li>
+          <li>SSO + RBAC</li>
+          <li>SLA guarantee</li>
+          <li>Dedicated support</li>
+          <li>Custom integrations</li>
+        </ul>
+        <button class="plan-btn">Contact sales</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-banner">
+    <h2>Ready to automate your workflow?</h2>
+    <p>Join thousands of teams already saving hours every week with FlowSync.</p>
+    <a href="#" class="btn-primary">Start free — no credit card needed</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 FlowSync, Inc. · Privacy · Terms · Status</p>
+  </footer>
+
+</body>
+</html>

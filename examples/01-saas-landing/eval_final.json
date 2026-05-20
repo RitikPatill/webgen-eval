@@ -1,0 +1,10 @@
+{
+  "overall": 8.0,
+  "dimensions": {
+    "visual_clarity": 8.5,
+    "responsiveness": 7.5,
+    "functional_completeness": 8.0,
+    "code_quality": 8.0
+  },
+  "critique": "Strong dark-mode aesthetic with well-chosen accent colours and clear visual hierarchy. The gradient hero heading and card hover animations add polish. Responsiveness is good — the nav collapses on mobile and grids reflow correctly — though the logo row could use smaller font-size on very narrow viewports. Pricing cards are complete and the featured state is clearly differentiated. Code is clean with consistent custom-property usage; a minor improvement would be consolidating the repeated border-radius values into a variable."
+}
