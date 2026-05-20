@@ -33,16 +33,27 @@ def extract_html(text: str) -> str:
     raise ValueError("No fenced HTML block found in model response.")
 
 
-def generate(description: str, output_path: Path) -> Path:
+def generate_html(
+    description: str,
+    output_path: Path,
+    refinement_context: str | None = None,
+) -> str:
     system_prompt = load_prompt("generator.txt")
     client = anthropic.Anthropic()
+    user_content = description
+    if refinement_context:
+        user_content += (
+            "\n\n---\nPrevious version was evaluated. Critique:\n"
+            + refinement_context
+            + "\n\nGenerate an improved version that addresses the above feedback."
+        )
     message = client.messages.create(
         model=MODEL,
         max_tokens=MAX_TOKENS,
         system=system_prompt,
-        messages=[{"role": "user", "content": description}],
+        messages=[{"role": "user", "content": user_content}],
     )
     html = extract_html(message.content[0].text)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
-    return output_path
+    return html
