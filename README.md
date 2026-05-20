@@ -4,14 +4,14 @@ A CLI tool that generates polished, self-contained HTML/CSS/JS webpages from pla
 
 ## Status
 
-**M2 — html generation core complete.** The `generate` command calls Claude (`claude-sonnet-4-6`) and writes a self-contained HTML file to `output/<slug>.html`.
+**M3 — llm-as-judge evaluator complete.** `evaluator.py` exposes `evaluate(html) -> EvalResult`, a validated Pydantic model with four 0–10 dimension scores and a critique string. A judge system prompt lives at `prompts/judge.txt`.
 
 | Component | State |
 |-----------|-------|
 | Repo scaffold (`src`-layout, `pyproject.toml`) | done |
 | CLI entry point (`webgen-eval generate`) | done |
 | Generator (Claude → HTML) | done |
-| Judge (Claude → Pydantic scores) | planned |
+| Judge (Claude → Pydantic scores) | done |
 | Refinement loop | planned |
 | Rich score-table display | planned |
 
@@ -21,7 +21,7 @@ LLM-as-judge evaluation is one of the fastest-growing patterns in applied AI eng
 
 ## Architecture
 
-Target architecture (M2 implemented; M3–M5 planned):
+Target architecture (M3 implemented; M4–M5 planned):
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -72,16 +72,19 @@ Target architecture (M2 implemented; M3–M5 planned):
 ```
 webgen-eval/
 ├── prompts/
-│   └── generator.txt        # system prompt for the HTML generator
+│   ├── generator.txt        # system prompt for the HTML generator
+│   └── judge.txt            # system prompt for the LLM-as-judge evaluator
 ├── src/
 │   └── webgen_eval/
 │       ├── __init__.py      # package version
 │       ├── __main__.py      # CLI entry point (Typer)
-│       └── generator.py     # Claude call + HTML extraction + file write
+│       ├── generator.py     # Claude call + HTML extraction + file write
+│       └── evaluator.py     # judge Claude call + Pydantic EvalResult model
 ├── output/                  # generated HTML files (gitignored except .gitkeep)
 ├── tests/
 │   ├── __init__.py
-│   └── test_generator.py    # unit tests for slug() and extract_html()
+│   ├── test_generator.py    # unit tests for slug() and extract_html()
+│   └── test_evaluator.py    # unit tests for parse_eval_response() and evaluate()
 ├── requirements.txt         # pinned runtime deps
 ├── requirements-dev.txt     # pytest (dev only)
 ├── pyproject.toml           # build config + console-script entry point
@@ -149,7 +152,7 @@ Example prompts with generated HTML and JSON eval reports will be added in a fut
 |-----------|-------------|
 | M1 — scaffold | Repo structure, stub CLI, pinned deps (done) |
 | M2 — generator | Claude prompt → self-contained HTML output, saved to disk (done) |
-| M3 — judge | Pydantic score model, judge prompt, JSON eval report |
+| M3 — judge | Pydantic score model, judge prompt, JSON eval report (done) |
 | M4 — refinement loop | Critique feedback → re-generation, up to N iterations |
 | M5 — Rich display | Terminal table with per-dimension scores and iteration deltas |
 | M6 — examples | Sample prompts, generated HTML files, and eval reports under `examples/` |
