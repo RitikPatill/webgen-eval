@@ -1,5 +1,9 @@
 # WebGen-Eval: LLM Webpage Generator with Auto-Evaluation Loop
 
+
+> **Video walkthrough:** https://youtu.be/W6eU-3fZ-tI
+> **60-second overview:** https://youtu.be/IrCMZNa9lSc
+
 > Generate HTML/CSS pages from text prompts, then score and refine them with an LLM-as-judge evaluation loop.
 
 <!-- TODO: replace with a 5-10 second demo gif. Record with ScreenToGif on
