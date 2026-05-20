@@ -20,7 +20,7 @@ build/
 MANIFEST
 
 # Output files
-output.html
+output/*.html
 
 # Examples: keep JSON reports, ignore generated HTML
 examples/*.html
